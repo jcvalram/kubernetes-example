@@ -1,0 +1,90 @@
+INSTALACION MINIKUBE EN UBUNTU 20.04 (VIRTUAL BOX)
+##################################################
+
+REQUISITOS:
+
+ 2 CPU o más
+ 2GB de memoria libre
+ 20 GB de espacio libre en disco
+ Conexión a Internet
+ Administrador de contenedores o máquinas virtuales, como: Docker , Hyperkit , Hyper-V , KVM , Parallels , Podman , VirtualBox o VMWar
+
+
+INSTALAR DOCKER COMO «Container runtime»
+   Utilizaremos docker para la ejecución y manipulación de contenedores, para ello procederemos a instalar el mismo 
+   en nuestro servidor:
+
+   Desinstalar versiones antiguas:
+   sudo apt-get remove docker docker-engine docker.io containerd runc
+
+   Actualizar índice de paquetes:
+   sudo apt-get update
+   sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+   
+   Agregar la clave GPG oficial de Docker:
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+   
+   Configurar el repositorio estable:
+   echo
+   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu 
+   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   
+   Instalar Docker Engine:
+   sudo apt-get update 
+   sudo apt-get install docker-ce docker-ce-cli containerd.io
+   
+   Cambiar Docker a sistemas:
+	cat <<EOF | sudo tee /etc/docker/daemon.json
+	{
+	  "exec-opts": ["native.cgroupdriver=systemd"],
+	  "log-driver": "json-file",
+	  "log-opts": {
+		"max-size": "100m"
+	  },
+	  "storage-driver": "overlay2"
+	}
+	EOF
+
+   sudo systemctl enable docker
+   sudo systemctl daemon-reload  
+   sudo systemctl restart docker
+
+INSTALAR MINIKUBE
+ 
+  apt-get update
+  curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+  
+  chmod +x minikube
+  install minikube /usr/local/bin
+  minikube version
+
+INSTALAR KUBECTL
+  curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s 
+  https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+  
+  chmod +x kubectl
+  mv kubectl /usr/local/bin/
+  kubectl version
+
+ARRANCAMOS MINIKUBE
+
+  Arrancamos el cluster
+  minikube start --driver=none (Usamos esta opción para arrancar el cluster en una MV)
+  
+  
+  Si da el siguiente error: "Exiting due to DRV_AS_ROOT: The “docker” driver should not be used with root privileges" 
+  arrancamos así:
+  
+  minikube start --force --driver=docker
+  
+  Si existe algún otro error hacer:
+  
+  minikube stop
+  minikube delete
+  rm -r /root/.minikube
+  rm -r /root/.kube
+  Volver arrancar minikube
+  
+  
+
+  

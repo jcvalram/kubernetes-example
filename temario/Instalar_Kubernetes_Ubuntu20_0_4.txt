@@ -1,0 +1,120 @@
+INSTALACION KUBRNETES EN UBUNTU 20.0.4
+######################################
+
+REQUISITOS:
+
+Un host Linux compatible. El proyecto Kubernetes proporciona instrucciones genéricas para 
+distribuciones de Linux basadas en Debian y Red Hat, y aquellas distribuciones sin un administrador
+de paquetes.
+2 GB o más de RAM por máquina (menos dejará poco espacio para sus aplicaciones).
+2 CPU o más.
+Conectividad de red completa entre todas las máquinas del clúster (la red pública o privada está bien).
+Nombre de host, dirección MAC y product_uuid únicos para cada nodo. Consulte aquí para obtener más 
+detalles.
+Ciertos puertos están abiertos en sus máquinas. Consulte aquí para obtener más detalles.
+Swap desactivado. Usted DEBE desactivar de intercambio para que el kubelet para que funcione 
+correctamente. (MUY IMPORTANTE)
+
+1. ACTUALIZANDO REPOSITORIO Y SISTEMA OPERATIVO
+   sudo apt-get update
+   
+2. DESHABILITANDO SWAP Y CONFIGURANDO SYSCTL
+   sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab 
+   sudo swapoff -a
+
+   sudo modprobe overlay
+   sudo modprobe br_netfilter
+
+   sudo tee /etc/sysctl.d/k8s.conf<<EOF
+   net.bridge.bridge-nf-call-ip6tables = 1
+   net.bridge.bridge-nf-call-iptables = 1
+   net.ipv4.ip_forward = 1
+   EOF
+
+   sudo sysctl --system
+   
+3. INSTALAR DOCKER COMO «Container runtime»
+   Utilizaremos docker para la ejecución y manipulación de contenedores, para ello procederemos a instalar el mismo 
+   en nuestro servidor:
+
+   Actualizar índice de paquetes:
+   sudo apt-get update
+   sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+   
+   Agregar la clave GPG oficial de Docker:
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+   
+   Configurar el repositorio estable:
+   echo
+   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu 
+   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   
+   Instalar Docker Engine:
+   sudo apt-get update 
+   sudo apt-get install docker-ce docker-ce-cli containerd.io
+   
+   Cambiar Docker a sistemas:
+	cat <<EOF | sudo tee /etc/docker/daemon.json
+	{
+	  "exec-opts": ["native.cgroupdriver=systemd"],
+	  "log-driver": "json-file",
+	  "log-opts": {
+		"max-size": "100m"
+	  },
+	  "storage-driver": "overlay2"
+	}
+	EOF
+
+   sudo systemctl enable docker
+   sudo systemctl daemon-reload  
+   sudo systemctl restart docker 
+   
+
+4. INSTALANDO KUBELET, KUBEADM Y KUBECTL
+   En esta sección procederemos a la instalación de kubelet, kubeadm y kubectl, primeramente adicionamos el 
+   repositorio de kubernetes a nuestro linux con la siguiente instrucción:
+
+   Agregue la clave GPG oficial para Kubernetes:
+   sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+   Agregamos el repositorio oficial para instalar Kubernetes y kubectl:
+   echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+   Una vez listo el repositorio, instamos los paquetes necesario:
+
+   sudo apt update 
+   sudo apt -y install kubelet kubeadm kubectl 
+   sudo apt-mark hold kubelet kubeadm kubectl
+
+   Para verificar que el proceso fue correctamente completado, verifiquemos si podemos visualizar la version de 
+   kubectl y kubeadmin con el siguiente instrucción:
+
+   kubectl version --client && kubeadm version
+   
+   Si anteriormente se inició un cluster, lo mejor es borrar el cluster y su configuración:
+   kubeadm reset
+   rm -r $HOME/.kube
+   
+   Iniciamos el cluster de kubernetes:
+   kubeadm init --pod-network-cidr=10.244.0.0/16
+   
+   Para poder manejar el cluster y cargar la configuración, debemos realizar lo siguiente:
+   mkdir -p $HOME/.kube
+   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/configsudo 
+   sudo chown $(id -u):$(id -g) $HOME/.kube/config
+   
+   En caso de ser usuario root exportamos la ruta a las variables de entorno:
+   export KUBECONFIG=/etc/kubernetes/admin.conf
+   
+-
+
+5. INICIALIZANDO NUESTRO NODO MAESTRO
+   Hasta este punto hemos preparado las condiciones necesarias para arrancar nuestro nodo maestro, que será el encargado
+   de administrar y orquestar toda la lógica de kubernetes, desde aquí se comandarán todas las instrucciones para poder 
+   manejar nuestro cluster.
+
+   Ahora procedermos a inicializar el nodo maestro con las siguientess instrucciones:
+
+   sudo systemctl enable kubelet
+   sudo kubeadm config images pull
+

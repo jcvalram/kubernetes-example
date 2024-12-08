@@ -1,0 +1,1067 @@
+KUBERNETES
+##########
+
+Es una plataforma que ofrece un entorno de administración centrado en contenedores.
+Kubernetes orquesta la infraestructura de cómputo, redes y almacenamiento para que
+las cargas de trabajo de los usuarios no tengan que hacerlo.
+Kubernetes fue diseñada como una plataforma: para poder construir un ecosistema de 
+componentes y herramientas que hacen más fácil el desplegar, escalar y administrar 
+aplicaciones.
+
+Componentes de Kubernetes:
+
+Se dividen en 2 tipos de componentes:
+
+- Componentes del Panel de Control
+- Componentes del Nodo
+
+Componentes Panel de Control
+############################
+
+1. kube-apiserver: 
+Expone el API de Kubernetes para poder interactuar con la herramienta. 
+
+2. kube-controller-manager:
+Ejecuta los controladores de Kubernetes. Estos controladores incluyen:
+
+  - Controlador de nodos: es el responsable de detectar y responder cuándo un 
+	nodo deja de funcionar.
+  - Controlador de replicación: es el responsable de mantener el número correcto 
+    de pods para cada controlador de replicación del sistema.
+  - Controlador de endpoints: construye el objeto Endpoint, es decir, hace una 
+    unión entre los Services y los Pods. Genera una entrada a una determinada
+	aplicación.
+  - Controladores de tokens y cuentas de servicio: crean cuentas y tokens de acceso
+    a la API por defecto para los nuevos Namespaces.
+	
+3. kube-scheduler:
+Componente encargado asignar los Pods a un nodo determinado para poder ejecutarlo.
+Para decidir en qué nodo se ejecutará el pod, se tienen en cuenta diversos 
+factores: requisitos de recursos, restricciones de hardware/software/políticas, 
+afinidad y anti-afinidad, localización de datos dependientes, entre otros.
+
+4. etcd:
+Es una almacén de datos persistente de tipo clave-valor, utilizado para almacenar 
+toda a la información del clúster de Kubernetes.
+
+5. cloud-controller-manager:
+Ejecuta controladores que interactúan con proveedores de la nube.
+Los siguientes controladores dependen de alguna forma de un proveedor de la nube:
+
+Controlador de nodos: es el responsable de detectar y actuar cuándo un nodo deja
+de responder.
+Controlador de rutas: para configurar rutas en la infraestructura de nube subyacente.
+Controlador de servicios: para crear, actualizar y eliminar balanceadores de carga
+en la nube.
+Controlador de volúmenes: para crear, conectar y montar volúmenes e interactuar con
+el proveedor de la nube para orquestarlos.
+
+Componentes de Nodo
+###################
+
+1. Runtime de contendores:
+Es el software responsable de ejecutar los contenedores. Kubernetes soporta varios 
+de ellos: Docker, containerd, cri-o, rktlet y cualquier implementación de la 
+interfaz de runtime de contenedores de Kubernetes o Kubernetes CRI.
+
+2. kubelet:
+Agente que se ejecuta en cada nodo de un clúster. Se asegura de que los contenedores
+estén corriendo en un pod.
+El agente kubelet toma un conjunto de especificaciones de Pod, llamados PodSpecs, 
+que han sido creados por Kubernetes y garantiza que los contenedores descritos en 
+ellos estén funcionando y en buen estado.
+
+3. kube-proxy:
+Permite la conectividad de todos los componentes dentro del nodo con el resto del
+cluster.
+
+
+MINIKUBE
+########
+
+Es una herramienta que permite ejecutar un entorno Kubernetes en local.
+Crea un cluster de un sólo nodo para poder probar y aprender.
+
+Instalación MiniKube
+
+https://lemoncode.net/lemoncode-blog/2021/6/12/usando-kubernetes-en-local-minikube-instalacion-en-windows
+
+  Requisitos:
+  - Instalar kubectl -> Herramienta para trabajar con el cluster de Kubernetes, 
+    elegir instalador según sistema operativo.
+  - Tener habilitado un hypervisor:
+    Linux -> VirtualBox, KVM
+    MAC -> Virtualbox, Hyperkit, Vmware fusion
+    Windows -> Virtualbox, Hyper-V
+  - Vt-x/AMD-v Activado virtualización del procesador.
+
+ Instalar minikube versión según sistema operativo.
+
+ minikube start
+ Crea y arranca un cluster de Kubernetes en la máquina local.
+ Si se inicializa en windows, no puede inicializar otro minikube en otro sistema 
+ operativo en una máquina virtual, porque da errores de conflictos por la versión
+ y los certificados.
+ 
+ minikube start --container-runtime=cri-o
+ Crea y arranca un cluster de kubernetes con otro container runtime, por defecto si no ponemos esta opción 
+ usa Docker, pero también existen otras opciones de container runtime como: containerd y cri-o, siempre y 
+ cuando lo soporte la versión de Kubernetes.
+ 
+ minikube start -p [nombre_cluster]
+ Crea y arranca un cluster de kubernetes con el nombre asignado.
+ 
+ minikube stop
+ Para los cluster de Kubernetes.
+ 
+ minikube profile
+ Muestra info del cluster actual en la máquina, es decir, si existe más de un cluster, te informa 
+ sobre el cual estás posicionado.
+ 
+ minikube profile [nombre-cluster]
+ Te situa el cluster pasado como parámetro.
+ 
+ minikube profile list
+ Muestra la información sobre los cluster levantados de Kubernetes
+ 
+ minikube delete
+ Elimina un cluster de Kubernetes. Si existe más de uno, se deberá situar en dicho cluster
+ para poder eliminarlo.
+
+ kubectl get nodes
+ Muestra información de los nodos.
+ 
+ kubectl get nodes -o wide
+ Muestra información de los nodos con más detalle.
+ 
+ DESPLIEGUES DE UNA APLICACION
+ ###############################
+ 
+ Existen dos formas de desplegar una aplicación: imperativo y declarativo.
+ Imperativo: Se realiza mediante la ejcuación de comandos.
+ 
+ Declarativo: Se realiza mediante un manifiesto (fichero yaml) donde se declara cómo se va desplegar
+ la aplicación en un contenedor, con sus replicas, volúmenes, etc.
+ Es la forma correcta y robusta para desplegar aplicaciones.
+ 
+ PODS
+ ####
+ Es la unidad mínima de creación en un cluster de Kubernetes. Los pods pueden estar formados por uno
+ o más contenedores. Comparten la misma dirección ip para todos los contenedores.
+ El componente Scheduler es el que se encarga de asignar nodo al pod donde se va desplegar.
+ 
+ kubectl run [nombre_pod] --image=[nombre_image]
+ Crea un pod con el indicado y con la imagen indicada.
+ 
+ kubctl get pods
+ Muestra la lista pods con información básica.
+ 
+ kubctl get pods -o wide
+ Muestra la lista pods con información más detallada.
+ 
+ kubectl describe pods
+ Muestra todas las propiedades de todos los Pods.
+ 
+ kubectl describe pod [nombre-pod]
+ Muestra las propiedades de un Pod determinado.
+ 
+ kubectl logs [nombre-pod]
+ Muestra los logs del pod.
+ 
+ kubectl logs -f [nombre-pod]
+ Muestra los logs del pod pero se mantiene en espera mostrando más logs.
+ 
+ kubectl exec [nombre-pod] [comando] (Deprecado)
+ Ejecuta un comando dentro del pod.
+ Ejemplo: kubectl exec ubuntu-73j3jj -it bash
+ 
+ kubectl exec [nombre-pod] -- [comando] (Nueva versión)
+ 
+ kubectl proxy
+ Abre una url con las APIs del cluster para poder acceder a todos los recursos del mismo.
+ 
+ minikube ssh
+ Conexión para entrar al cluster de kubernetes
+ 
+ CREAR POD CON MANIFEST
+ ######################
+ Se basa en un ficher yaml donde viene la declaración del Pod.
+ 
+ kubectl create -f [nombre-fichero.yaml]
+ 
+ CONFIGURACION DE POD CON YAML O JSON
+ ####################################
+ 
+ kubectl get pod/[nombre-pod] -o yaml/json
+ Muestra todas las propiedade de configuración de un Pod y lo muestra en formato yaml o json.
+ 
+ kubectl get pod/[nombre-pod] -o yaml > f1.yaml
+ Igual función que el anterior pero creando un fichero con la información obtenida.
+ 
+ COMPROBAR PODS EN DASHBOARD
+ ###########################
+ 
+ minikube dashboard
+ Abre un entorno gráfico en el navegador con la información del cluster de kubernetes.
+ 
+ BORRAR UN POD
+ #############
+ 
+ kubectl delete pod/[nombre-pod] ó kubectl delete pod [nombre-pod]
+ Elimina un Pod por su nombre.
+ 
+ kubectl delete pod [nombre-pod] --grace-period=[tiempo]
+ Elimina un Pod esperando un determinado tiempo antes de hacerlo.
+ 
+ kubectl delete pod [nombre-pod] --now
+ Elimina un pod inmediatamente sin esperar que se terminen otros procesos que se estén ejecutando.
+ 
+ kubectl delete pods --all
+ Elimina todos los pods del clúster.
+ 
+ PODS MULTICONTENEDORES
+ ######################
+ 
+ kubectl logs pod/[nombre-pod] -c [nombre-contendor]
+ Muestra los logs de un Pod para un contenedor determinado cuando existe más de uno.
+ 
+ COMANDO APPLY
+ #############
+ Trabajando de forma declarativa.
+ 
+ kubectl appy -f [nombre-fichero.yaml]
+ Crea un Pod y permite modificarlo a través de el yaml modificado. Esto no se puede hacer con 
+ el comando 'create'. Es la mejor forma de modificar algo en producción.
+ 
+ RIEINICIO UN POD
+ ################
+ 
+ Tipos de políticas de restart.
+ - Always: Siempre que el Pod tenga una caída, reinicia siempre.
+ - OnFailure: Sólo va a reiniciar el Pod si ocurre algún error interno.
+ - Never: Nunca se reinicia el Pod.
+ 
+ La política por defecto al crear un Pod es Always.
+ 
+ LABELS, SELECTORS Y ANOTACIONES
+ ###############################
+ 
+ Son parecidos que cumplen funcionalidades distintas.
+ 
+ Labels
+ ######
+ 
+ Son propiedades que se definen en los manifiestos (.yaml), nos sriven para localizar, relacionar y
+ buscar componentes en el clúster.
+ 
+ Ejemplo definir label de forma declarativa (fichero yaml):
+ 
+ apiVersion: v1
+ kind: Pod
+ metadata:
+  name: tomcat
+  labels:
+     estado: "desarrollo"
+ spec:
+  containers:
+    - name: tomcat
+      image: tomcat
+ 
+ Ejemplo añadir label de forma imperativa (comandos): 
+ 
+ kubectl label pod tomcat responsable=juan
+
+ Muestra la información del pod y su label:
+ 
+ kubectl get pod [nombre-pod] --show-labels
+
+ kubectl get pod tomcat --show-labels -L [nombre-label]
+ 
+ Modificar un label de forma imperativa:
+ 
+ kubectl label --overwrite pod/[nombre-pod] [label]=[valor]
+ 
+ Elimina un label
+ 
+ kubectl label pod/[nombre-pod] [label]-
+ 
+ Lo mejor es sin duda hacerlo de forma declarativa modificando el fichero yaml y ejecutar el
+ comando kubctl apply.
+ 
+ Selectors
+ #########
+ 
+ Son los filtros que se hacen para localizar o buscar componentes en el cluster.
+ 
+ kubectl apply -f .
+ Crea Pods con el contenido de los ficheros yaml que hay en el directorio actual.
+ 
+ - Ejemplo búsqueda Pods con selectores:
+ 
+ kubectl get pods --show-labels -l estado=desarrollo
+ 
+ kubectl get pods --show-labels -l estado=desarrollo,responsable=juan
+ 
+ kubectl get pods --show-labels -l responsable!=juan
+ 
+ kubectl get pods --show-labels -l 'estado in(desarrollo)'
+ 
+ kubectl get pods --show-labels -l 'estado in(desarrollo,testing)'
+ 
+ kubectl get pods --show-labels -l 'estado notin(desarrollo,testing)'
+ 
+ - Ejemplo búsqueda de componentes:
+ 
+ kubectl get all -l app=guestbook
+ 
+ - Ejemplo borrado Pod con selectores:
+ 
+ kubectl delete pods -l estado=desarrollo
+ 
+ Anotaciones
+ ###########
+ 
+ Sirven para describir y documentar los componentes.
+ 
+ Ejemplo:
+ 
+ apiVersion: v1
+ kind: Pod
+ metadata:
+   name: tomcat4
+   labels:
+     estado: "produccion"
+     responsable: "pedro"
+   annotations:
+     doc: "Se debe compilar con gcc"
+     adjunto: "ejemplo de anotacion"
+ spec:
+   containers:
+    - name: tomcat
+      image: tomcat
+ 
+ 
+ kubectl get pod tomcat4 -o jsonpath={.metadata.annotations}
+ Muestra el contenido del objeto metadata.annotations
+ 
+ DEPLOYMENTS
+ ###########
+ 
+ Orquesta el despliegue de los Pods, replica y gestiona los despliegues.
+ 
+ WorkLoads y Controllers
+ #######################
+ 
+ Los Workloads, son procesos que envuelven los Pods con una serie de características que se 
+ utilizan para que se ejecuten de una determinada manera. Son los siguientes:
+ 
+ Deployment
+ Replica Set, sustituyen a los Replication Controller.
+ Stateful Set
+ Daemon Set
+ Job
+ Cron Job
+ 
+ Los Controllers, su principal función es la de controlar que el cluster funciona correctamente y los 
+ Pods y Workloads se adaptan a lo que hemos definido.
+ 
+ DEPLOYMENTS
+ ###########
+ 
+ Es un wrapper donde se definen una propiedades específicas para el despliegue. Se encarga del
+ control, la gestión y escalado de los Pods.
+ Al crearse un Deployment también se crea el ReplicaSet, que es el encargado del escalado y la
+ recuperación ante caídas.
+ 
+ Creación:
+ #########
+ 
+ Creación de un deployment de modo imperativo (Comando
+ kubectl create deployment [nombre-deploy] --image=[nombre-image]
+ 
+ Creación de un deployment de modo declarativo (fichero yaml)
+ 
+ apiVersion: apps/v1 # i se Usa apps/v1beta2 para versiones anteriores a 1.9.0
+ kind: Deployment
+ metadata:
+   name: nginx-d
+ spec:
+   selector:   #permite seleccionar un conjunto de objetos que cumplan las condicione
+    matchLabels:
+      app: nginx
+   replicas: 2 # indica al controlador que ejecute 2 pods
+   template:   # Plantilla que define los containers
+     metadata:
+       labels:
+         app: nginx
+     spec:
+       containers:
+       - name: nginx
+         image: nginx:1.7.9
+         ports:
+         - containerPort: 80
+		 
+ Otras operaciones
+ #################
+ 
+ Muestra los deployments creados
+ kubectl get deploy
+ kubectl get deployments
+ 
+ Muestra información detallada de un deployment
+ kubectl describe deploy [nombre-deploy]
+ 
+ kubectl get deploy [nombre-deploy] -o yaml/json
+ Muestra todas las propiedades de configuración del deploy
+ 
+ kubectl apply deployment -f [fichero.yaml]
+ 
+ kubectl get rs -o wide
+ Muestra la información de los ReplicaSet
+ 
+ kubectl get deploy,pods,rs
+ Muestra la información de todos los deploy, pods y Result Set.
+ 
+ kubectl get deploy,pods,rs -l [label]=[valor]
+ Igual que el anterior, pero filtrando con selector.
+ 
+ kubectl edit deploy [nombre-deploy]
+ Edita en caliente el fichero de configuración del deploy con todas sus propiedades.
+ 
+ kubectl scale deploy [nombre-deploy] --replicas=[numero]
+ Permite escalar de forma manual un deployment.
+ 
+ kubectl scale deploy -l [label]=[valor] --replicas=[numero]
+ Permite escalar filtrando por las labels.
+ 
+ Configuración de memoria
+ ########################
+ 
+ apiVersion: apps/v1 # i se Usa apps/v1beta2 para versiones anteriores a 1.9.0
+ kind: Deployment
+ metadata:
+  name: nginx-d
+  labels:
+    estado: "1"
+ spec:
+  selector:   #permite seleccionar un conjunto de objetos que cumplan las condicione
+    matchLabels:
+      app: nginx
+  replicas: 5 # indica al controlador que ejecute 2 pods
+  template:   # Plantilla que define los containers
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+        resources:
+          limits: # Tamaño máximo de memoria que puede tener un contenedor
+              memory: "200Mi"
+          requests: # Tamaño inicial de memoria con el que arranca el contenedor.
+              memory: "100Mi"
+ 
+ Configurar CPU
+ ##############
+ 
+ kubectl describe node
+ Muestra información y caracteríticas del nodo, como memoria, disco, etc.
+ 
+ apiVersion: apps/v1 # i se Usa apps/v1beta2 para versiones anteriores a 1.9.0
+ kind: Deployment
+ metadata:
+  name: nginx-d
+  labels:
+    estado: "1"
+ spec:
+  selector:   #permite seleccionar un conjunto de objetos que cumplan las condicione
+    matchLabels:
+      app: nginx
+  replicas: 5 # indica al controlador que ejecute 2 pods
+  template:   # Plantilla que define los containers
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+        resources:
+          limits: # Tamaño máximo de memoria que puede tener un contenedor
+              memory: "200Mi"
+			  cpu: "2"
+          requests: # Tamaño inicial de memoria con el que arranca el contenedor.
+              memory: "100Mi"
+			  cpu: "0.5"
+			  
+ SERVICES
+ ########
+ 
+ Son los componentes que nos permiten conectarnos de forma externa con los Pods y contenedores.
+ Sirve de comunicador entre el cliente y el deployment que realiza el despligue de los Pods.
+ Este servicio ofrece una ip fija y un puerto fijo, recoge la lista dinámica de los Pods disponibles 
+ y se encarga de enviar la petición a alguno de ellos. Tipos de servicios más importantes son:
+ 
+ - ClusterIp: Permite que los deployments y Pods sean accesibles desde dentro del cluster.
+ - NodePort: Permite acceder desde fuera del cluster.
+ - LoadBalancer: Accesible desde fuera del cluster integrado con clouds.
+ 
+ El servicio no busca por ip sino por label para obtener los Pods disponibles.
+ 
+ - Creamos un deploy a partir del siguiente fichero .yaml:
+ 
+ apiVersion: apps/v1 # i se Usa apps/v1beta2 para versiones anteriores a 1.9.0
+ kind: Deployment
+ metadata:
+  name: web-d
+  labels:
+    estado: "1"
+ spec:
+  selector:   #permite seleccionar un conjunto de objetos que cumplan las condicione
+     matchLabels:
+       app: web
+  replicas: 2 # indica al controlador que ejecute 2 pods
+  template:   # Plantilla que define los containers
+     metadata:
+        labels:
+           app: web
+     spec:
+        containers:
+          - name: apache
+            image: jcvalram/web:latest
+            ports:
+             - containerPort: 80
+  --- Fin fichero ----
+  
+ kubectl apply -f deploy_web.yaml
+ 
+ Creación servicio de forma imperativa
+ #####################################
+ 
+ Nomenclatura:
+ kubectl expose deployment [deploy-name] --name=[service-name] --target-port=[puerto-container] --type=[tipo-servicio]
+ 
+ - Creamos el servicio a partir del deploy, dándole nombre al servicio (web-svc), indicando el 
+ puerto que usa el contenedor e indicando el tipo de servicio:
+ 
+ kubectl expose deployment web-d --name=web-svc --target-port=80 --type=NodePort
+ 
+ Comprobamos que se ha creado con:
+ kubectl get svc -> Muestra la lista de servicios
+ 
+ Ahora deberíamos acceder a la aplicación a través del servicio, para eso obtenemos info del nodo:
+ 
+ kubectl get node
+ Muestra información del nodo, entre ellos la ip externa del mismo.
+ 
+ Y por otro lado información del puerto que se le asigna al servicio:
+ 
+ kubectl get svc [nombre-servicio]
+ Muestra toda la información del servicio, entre ellos el puerto que se le asigna.
+ 
+ kubectl delete svc [nombre-servicio]
+ Borra un servicio
+ 
+ Creación servicio de forma declarativa
+ ######################################
+ 
+ - Creamos un fichero .yaml:
+ 
+ apiVersion: v1
+ kind: Service
+ metadata:
+   name: web-svc
+   labels:
+     app: web
+ spec:
+   type: NodePort
+   ports:
+     - port: 80
+       nodePort: 30002
+       protocol: TCP
+   selector:
+      app: web
+ 
+ 
+ Creamos el servicio a partir del fichero .yaml:
+ Nomenclatura:
+ kubectl apply -f [fichero.yaml]
+ 
+ kubectl apply -f web_svc.yaml
+ Crea el servicio con nombre web-svc definido en el fichero .yaml
+ 
+ kubectl get all
+ Muestra todos los componentes creados: Pods, Deployments, Servicios y ReplicaSet.
+ 
+ ROLLING UPDATE
+ ##############
+ 
+ Actualización de las aplicaciones. Existen 2 tipos de estrategia:
+
+ - RollingUpdate
+ Modifica los Pods de manera evolutiva, de tal modo que siempre exista un Pod que dé servicio.
+ Es el tipo de estrategia usado por defecto.
+ 
+ - Recreate
+ Modifica todos los Pods a la vez, ya que borra todos y los vuelve a crear.
+ 
+ Ejemplo en fichero .yaml:
+ 
+ apiVersion: apps/v1 # i se Usa apps/v1beta2 para versiones anteriores a 1.9.0
+ kind: Deployment
+ metadata:
+   name: nginx-d
+   labels:
+    estado: "1"
+ spec:
+   selector:   #permite seleccionar un conjunto de objetos que cumplan las condicione
+     matchLabels:
+       app: nginx
+   replicas: 10 # indica al controlador que ejecute 2 pods
+   strategy:
+      type: RollingUpdate
+	  rollingUpdate:
+          maxUnavailable: 1
+          maxSurge: 1
+   minReadySeconds: 2
+   template:   # Plantilla que define los containers
+     metadata:
+       labels:
+         app: nginx
+     spec:
+       containers:
+       - name: nginx
+         image: nginx:1.7.9
+         ports:
+         - containerPort: 80
+ 
+ kubectl rollout status deploy [nombre-deploy]
+ Va informando de los estados de los despliegues.
+ 
+ kubectl rollout history deploy [nombre-deploy]
+ Muestra el historial de cambios en el deploy
+ 
+ kubectl rollout history deploy [nombre-deploy] --revision=[numero-revision]
+ Muestra una revisión en concreta del historial
+ 
+ ROLLBACK
+ ########
+ 
+ kubectl rollout undo deployment [nombre-deploy] --to-revision=[numero-revision]
+ 
+ RECREATE
+ ########
+ 
+ Ejemplo en fichero .yaml:
+ 
+ apiVersion: apps/v1 # i se Usa apps/v1beta2 para versiones anteriores a 1.9.0
+ kind: Deployment
+ metadata:
+   name: nginx-d
+   labels:
+    estado: "1"
+ spec:
+   selector:   #permite seleccionar un conjunto de objetos que cumplan las condicione
+     matchLabels:
+       app: nginx
+   replicas: 10 # indica al controlador que ejecute 2 pods
+   strategy:
+      type: Recreate
+   template:   # Plantilla que define los containers
+     metadata:
+       labels:
+         app: nginx
+     spec:
+       containers:
+       - name: nginx
+         image: nginx:1.7.9
+         ports:
+         - containerPort: 80
+ 
+ NAMESPACES
+ ##########
+ 
+ Es una división lógica del cluster de Kubernetes para dividir los componentes en 
+ distintas zonas. Dentro de estas particiones del cluster podemos crear y trabajar
+ con los distintos componentes.
+ Existen algunos namespace por defecto al crearse el cluster y son:
+ 
+ - default, es el namespace donde se crean los componentes si no se especifica un
+   namespace.
+ - kube-system, contiene todos los componentes que se crean cuando arranca Kubernetes
+   y sólo es usado por el propio Kubernetes.
+ - kube-public, es usado por cualquier usuario.
+ - kubernetes-dashboard, sólo se crea cuando se activa el dashboard.
+ 
+ kubectl get namespace
+ Muestra todos los namespace del cluster.
+ 
+ kubectl get namespace [nombre-namespace]
+ Muestra información del namespace.
+ 
+ kubectl describe namespace [nombre-namespace]
+ Muestra información acerca de label, anotaciones, status, quotas y limits.
+ 
+ kubeclt get [tipo-componente] --n [nombre-namesapce]
+ Muestra la lista del tipo componente de la namespace.
+ 
+ - Crear y Borrar Namespaces
+   #########################
+   
+  Forma imperativa:
+  kubectl create namespace [nombre-namespace]
+  
+  Forma declarativa (fichero yaml):
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: dev1
+    labels:
+       tipo: desarrollo
+ 
+  kubectl apply -f [fichero.yaml]
+ 
+  kubectl delete namespace [nombre-namespace]
+  Elimina un namespace.
+
+ - Crear recursos dentro del Namespace
+   ###################################
+   
+  kubectl apply -f [fichero.yaml] --namespace=[nombre-namespace] ó
+  kubectl apply -f [fichero.yaml] -n [nombre-namespace]
+  Crea un recurso dentro del namespace indicado.
+   
+  kubectl describe [recurso] [nombre-recurso] -n [nombre-namespace]
+  Muestra la información con más detalle del recurso creado dentro del namespace.
+   
+  kubectl rollout history deploy [nombre-deploy] -n [nombre-namespace]
+  Muestra el histórico de cambios del deploy indicado en el namespace indicado.
+   
+ - Establecer un Namespace por defecto
+   ###################################
+   
+  kubectl config view
+  Muestra la información del fichero de configuración del cluster de Kubernetes.
+  
+  kubectl config set-context --current --namespace=[nombre-namespace]
+  Establece el contexto por defecto al namespace indicado.
+  
+ - Establecer límites de memoria y CPU 
+   ####################################
+   
+   Establece los límites de memoria y cpu para todos los pods del namespace.
+   
+   apiVersion: v1
+   kind: LimitRange
+   metadata:
+      name: recursos
+   spec:
+	  limits:
+		- default:
+			 memory: 512Mi
+			 cpu: 1
+		  defaultRequest:
+			 memory: 256Mi
+			 cpu: 0.5
+		  max:
+			 memory: 1Gi
+			 cpu: 4
+		  min:
+			 memory: 128Mi
+			 cpu: 0.5
+		  type: Container
+   
+   kubectl apply -f [fichero.yaml] -n [nombre-namespace]
+ 
+ 
+ CREACION DE CLUSTER REAL CON KUBEADM Y MAQUINAS VIRTUALES
+ #########################################################
+ 
+ Crear 3 máquinas virtuales con al menos 2,5G de RAM y 20GB de espacio en disco.
+ Debemos configurarla con al menos 2 procesadores, de lo contrarionofunciona la instalación.
+ 
+ Debemos trabajar como root y en primer lugar debemos deshabilitar el swap, de lo contrario 
+ no funciona elservidor. Podemos deshabilitarlo con el comando: swapoff -a.
+ 
+ ALMACENAMIENTO(VOLUMENES)
+ ###############
+ 
+ Es la zona de almacenamiento de un contenedor para guardar datos. Hay distintos tipos de 
+ almacenamiento, internos y externos como proveedores cloud.
+ Se pueden crear a través de ficheros yaml. Ejemplo:
+  
+  
+  VOLUMEN PERSISTENTE:
+  apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: pv-volume
+    labels:
+      type: local
+  spec:
+  storageClassName: sistemaficheros
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+ 
+ kubectl apply - [fichero.yaml] 
+ 
+ kubectl get pv
+ Muestra lista de volumenes
+ 
+ ALMACENAMIENTO DINAMICO (STORAGE CLASS)
+ #######################################
+ 
+ Es una definición de tipo de almacenamiento, se dice que es dinámico porque se ofrece a través de un plugin,
+ con un proveedor de almacenamiento.
+ Es un objeto global y luego se asocian los pv. Ejemplo:
+ 
+ apiVersion: storage.k8s.io/v1
+ kind: StorageClass
+ metadata:
+  annotations:
+    description: Esto es un ejemplo de Storage Class
+  name: bbdd
+ provisioner: kubernetes.io/no-provisioner (Trabajo de manera local)
+ reclaimPolicy: Delete
+ volumeBindingMode: WaitForFirstConsumer
+ 
+ kubectl apply -f storage-class.yaml
+ kubectl get sc
+ 
+ 
+ VARIABLES, CONFIGMAPS Y SECRETS
+ ###############################
+
+ - VARIABLES:
+ Sirve para injyectar datos y propiedades a los pods. Ejemplo:
+ 
+ apiVersion: v1
+ kind: Pod
+ metadata:
+  name: var-ejemplo
+  labels:
+    app: variables 
+ spec:
+  containers:
+  - name: contenedor-variables
+    image: gcr.io/google-samples/node-hello:1.0
+    env:
+    - name: NOMBRE
+      value: "CURSO DE KUBERNETES"
+    - name: PROPIETARIO
+      value: "Apasoft Training"
+
+ - CONFIGMAPS:
+ Son ficheros donde vienen definidos un conjunto de variables. Ejemplo:
+
+  kubectl create configmap [nombre] --from-literal=[nombre]=[valor]
+  
+  kubectl create configmap cf1 --from-literal=usuario=usu1 --from-literal=password=pass1
+  
+  kubectl get cm -> Muestra la lista de configmaps
+  
+  kubectl get cm cf1 -o yaml -> Muestra el contenido de configmap en formato yaml.
+  
+  Carga configmaps desde un fichero. Carga todos los datos en una sola propertie.
+
+   kubectl create configmap [nombre] --from-file=[nombre-fichero]
+
+  Ejemplo:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+     name: pod1
+  spec:
+	  containers:
+		- name: test-container
+		  image: gcr.io/google-samples/node-hello@sha256:d238d0ab54efb76ec0f7b1da666cefa9b40be59ef34346a761b8adc2dd45459b
+		  env:
+			# Define the environment variable
+			- name: DATOS_MYSQL
+			  valueFrom:
+				configMapKeyRef:
+				  name: datos-mysql
+				  key: datos_mysql.properties
+	  restartPolicy: Never
+  
+  kubectl create configmap datos-mysql --from-file=datos_mysql.properties
+  
+  Carga configmap desde un fichero pero con las properties separadas.
+  
+   kubectl create configmap [nombre] --from-env-file [nombre-fichero]
+	
+  Ejemplo:
+  apiVersion: v1
+  kind: Pod
+  metadata:
+     name: pod1
+  spec:
+	  containers:
+		- name: test-container
+		  image: gcr.io/google-samples/node-hello@sha256:d238d0ab54efb76ec0f7b1da666cefa9b40be59ef34346a761b8adc2dd45459b
+		  envFrom:
+		  - configMapRef:
+			  name: datos-mysql-env
+	  restartPolicy: Never
+  
+  kubectl create configmap datos-mysql-env --from-env-file datos_mysql.properties
+  
+  Cargar configmap para usar como volume.
+ 
+  - Fichero yaml donde creamos el configmap:
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+      name: config-volumen
+      namespace: default
+   data:
+     ENTORNO: "desarrollo"
+     VERSION: "1.0"
+  
+  - Fichero yaml donde creamos un pod definiendo el volume con el nombre del configmap:
+   apiVersion: v1
+   kind: Pod
+   metadata:
+      name: pod1
+   spec:
+	  containers:
+		- name: contenedor1
+		  image: k8s.gcr.io/busybox
+		  command: [ "/bin/sh", "-c", "sleep 1000000" ]
+		  volumeMounts:
+		  - name: volumen-config-map
+			mountPath: /etc/config-map
+	  volumes:
+		- name: volumen-config-map
+		  configMap:
+			name: config-volumen
+	  restartPolicy: Never
+ 
+  - SECRETS:
+  
+  kubectl create secret generic [nombre-secret] --from-literal=[nombre]=[valor]
+  
+  kubectl create secret generic [nombre-secret] --from-file=[nombre-fichero]
+  
+  Ejemplo:
+  kubectl create secret generic passwords --from-literal=pass-root=devuser --from-literal=pass-usu=kubernetes
+  
+  kubectl get secrets -> Muestra los secrets
+  
+  kubectl get secret [nombre-secret] -o yaml -> Muestra la información del secret en formato yaml.
+  
+  Ejemplo definiendo un secret en pod a partir de un fichero:
+  
+  apiVersion: v1
+  kind: Pod
+  metadata:
+      name: pod1
+  spec:
+	  containers:
+		- name: test-container
+		  image: ubuntu
+		  command: [ "/bin/sh", "-c", "sleep 1000000" ]
+		  env:
+			- name: DATOS
+			  valueFrom:
+				secretKeyRef:
+				  name: datos
+				  key: datos.txt  (Fichero de donde se va obtener el valor del secret)
+	  restartPolicy: Never
+ 
+ SONDAS
+ ######
+ 
+ Permiten realizar diagnósticos sobre los contenedores de Kubernetes. 
+ Exiten 3 tipos: COMANDO, HTTP GET y SOCKET. 
+ Y existen 3 tipos de comportamientos: LIVENESS, READINESS y STARTUP.
+ 
+  
+ RBAC (Role-Based Access Control)
+ ################################
+ 
+ Implementa los accesos a usuarios mediante autenticación. Algunas opciones son: 
+ certificados, tokens, basic authentication, ouath2.
+ Los roles están asociados a los namespaces. Los cluster roles están asociados a los
+ recursos del cluster definiendo el acceso a ellos.
+ 
+ ROLE
+ #####
+ Es un conjunto de permisos para usuarios de una namespace.
+ 
+  kubectl get namespaces
+  kubectl get roles
+  kubectl describe role [nombre-rol]
+  
+ Ejemplo creando rol con fichero yaml:
+ 
+ apiVersion: rbac.authorization.k8s.io/v1
+ kind: Role
+ metadata:
+   namespace: ventas
+   name: operador
+ rules:
+ - apiGroups: [""] 
+   resources: ["pods"]
+   verbs: ["get", "watch", "list"]
+ 
+ kubectl apply -f rol.yaml
+ kubectl get roles -n ventas
+ kubectl describe role operador -n ventas
+ kubectl config set-context --current --namespace=ventas -> Cambiar el contexto del namespace.
+ 
+ - Cluster Roles:
+ Son componentes que nos permiten trabajar a nivel de todo el cluster.
+ kubectl get clusterroles
+ 
+ kubectl describe clusterrole [nombre-clusterrol]
+ kubectl describe clusterrole system:node
+ 
+ CERTS
+ #####
+  
+ openssl genrsa -out desa1.key 4096
+ openssl req -config desa1.crs.cnf -new -key desa1.key -out desar1.csr
+ 
+ INGRESS
+ #######
+ 
+ Activar controlador ingress
+ minikube addons enable ingress
+ 
+ Mostrar la lista de componentes addons
+ minikube addons list
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
